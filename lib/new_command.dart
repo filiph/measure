@@ -29,13 +29,18 @@ class IosCpuGpuNew extends BaseCommand {
     addTraceUtilityOption();
   }
 
+  String get _timeLimit => argResults[kOptionTimeLimitMs];
+
   @override
   Future<void> run() async {
     checkRequiredOption(kOptionTemplate);
     checkRequiredOption(kOptionTraceUtility);
     _checkDevice();
+
+    print('Running instruments on iOS device $_device for ${_timeLimit}ms');
+
     final List<String> args = [
-      '-l', argResults[kOptionTimeLimitMs],
+      '-l', _timeLimit,
       '-t', argResults[kOptionTemplate],
       '-w', _device,
     ];
@@ -44,6 +49,8 @@ class IosCpuGpuNew extends BaseCommand {
     }
     ProcessResult processResult = await Process.runSync('instruments', args);
     _parseTraceFilename(processResult.stdout.toString());
+
+    print('Parsing $_traceFilename');
 
     CpuGpuResult result = Parser(verbose, traceUtility).parseCpuGpu(_traceFilename);
     print('$result');  // TODO NEXT
