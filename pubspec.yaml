@@ -1,0 +1,7 @@
+name: measure
+
+executables:
+  measure: main
+
+dependencies:
+  args: any
