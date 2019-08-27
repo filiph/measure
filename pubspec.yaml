@@ -5,3 +5,4 @@ executables:
 
 dependencies:
   args: any
+  meta: any
