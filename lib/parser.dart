@@ -18,6 +18,9 @@ class Parser {
   final bool isVerbose;
   final String traceUtilityPath;
 
+  List<String> _gpuMeasurements;
+  List<String> _cpuMeasurements;
+
   CpuGpuResult parseCpuGpu(String filename) {
     ProcessResult result = Process.runSync(traceUtilityPath, [filename]);
     if (result.exitCode != 0) {
@@ -28,17 +31,17 @@ class Parser {
     final List<String> lines = result.stderr.toString().split('\n');
 
     // toSet to remove duplicates
-    List<String> gpuMeasurements = lines.where((String s) => s.contains('GPU')).toSet().toList();
-    List<String> cpuMeasurements = lines.where((String s) => s.contains('Runner')).toSet().toList();
-    gpuMeasurements.sort();
-    cpuMeasurements.sort();
+    _gpuMeasurements = lines.where((String s) => s.contains('GPU')).toSet().toList();
+    _cpuMeasurements = lines.where((String s) => s.contains('Runner')).toSet().toList();
+    _gpuMeasurements.sort();
+    _cpuMeasurements.sort();
 
     if (isVerbose) {
-      gpuMeasurements.forEach(print);
-      cpuMeasurements.forEach(print);
+      _gpuMeasurements.forEach(print);
+      _cpuMeasurements.forEach(print);
     }
 
-    return CpuGpuResult(_computeGpuPercent(gpuMeasurements), _computeCpuPercent(cpuMeasurements));
+    return CpuGpuResult(_computeGpuPercent(), _computeCpuPercent());
   }
 
   static final RegExp _percentagePattern = RegExp(r'(\d+(\.\d*)?)%');
@@ -46,8 +49,8 @@ class Parser {
     return double.parse(_percentagePattern.firstMatch(line).group(1));
   }
 
-  double _computeGpuPercent(List<String> gpuMeasurements) {
-    return _average(gpuMeasurements.map(_parseSingleGpuMeasurement));
+  double _computeGpuPercent() {
+    return _average(_gpuMeasurements.map(_parseSingleGpuMeasurement));
   }
 
   // The return is a list of 2: the 1st is the time key string, the 2nd is the double percentage
@@ -57,8 +60,8 @@ class Parser {
     return <dynamic>[timeKey, match == null ? 0 : double.parse(_percentagePattern.firstMatch(line).group(1))];
   }
 
-  double _computeCpuPercent(List<String> cpuMeasurements) {
-    Iterable<List<dynamic>> results = cpuMeasurements.map(_parseSingleCpuMeasurement);
+  double _computeCpuPercent() {
+    Iterable<List<dynamic>> results = _cpuMeasurements.map(_parseSingleCpuMeasurement);
     Map<String, double> sums = {};
     for (List<dynamic> pair in results) {
       sums[pair[0]] = 0;
@@ -66,14 +69,24 @@ class Parser {
     for (List<dynamic> pair in results) {
       sums[pair[0]] += pair[1];
     }
+
+    // This key always has 0% usage. Remove it.
+    assert(sums['00:00.000.000'] == 0);
+    sums.remove('00:00.000.000');
+
     if (isVerbose) {
       print('CPU maps: $sums');
     }
     // Exclude the points where percentage is 0 (that's usually the point at t = 0).
-    return _average(sums.values.where((double x) => x > 0));
+    return _average(sums.values);
   }
 
-  static double _average(Iterable<double> values) {
+  double _average(Iterable<double> values) {
+    if (values == null || values.length == 0) {
+      _gpuMeasurements.forEach(print);
+      _cpuMeasurements.forEach(print);
+      throw Exception('No valid measurements found.');
+    }
     return values.reduce((double a, double b) => a + b) / values.length;
   }
 }
