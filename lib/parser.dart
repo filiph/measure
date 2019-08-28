@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 class CpuGpuResult {
@@ -9,6 +10,11 @@ class CpuGpuResult {
   @override
   String toString() {
     return 'gpu: $gpuPercentage%, cpu: $cpuPercentage%';
+  }
+
+  void writeToJsonFile(String filename) {
+    final String output = json.encode({'gpu_percentage': gpuPercentage, 'cpu_percentage': cpuPercentage});
+    File(filename).writeAsStringSync(output);
   }
 }
 

@@ -53,7 +53,8 @@ class IosCpuGpuNew extends BaseCommand {
     print('Parsing $_traceFilename');
 
     CpuGpuResult result = Parser(verbose, traceUtility).parseCpuGpu(_traceFilename);
-    print('$result');  // TODO NEXT
+    result.writeToJsonFile(outJson);
+    print('$result\nThe result has been written into $outJson');
   }
   String _traceFilename;
   Future<void> _parseTraceFilename(String out) async {

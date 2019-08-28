@@ -5,6 +5,7 @@ const String kOptionTimeLimitMs = 'time-limit-ms';
 const String kOptionTemplate = 'template';
 const String kOptionDevice = 'device';
 const String kOptionTraceUtility = 'trace-utility';
+const String kOptionOutJson = 'out-json';
 const String kFlagVerbose = 'verbose';
 
 abstract class BaseCommand extends Command {
@@ -26,6 +27,8 @@ abstract class BaseCommand extends Command {
 
   @protected
   bool get verbose => globalResults[kFlagVerbose];
+  @protected
+  String get outJson => globalResults[kOptionOutJson];
   @protected
   String get traceUtility => argResults[kOptionTraceUtility];
 }

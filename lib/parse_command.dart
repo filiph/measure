@@ -28,6 +28,7 @@ class IosCpuGpuParse extends BaseCommand {
     final String path = argResults.rest[0];
 
     CpuGpuResult result = Parser(verbose, traceUtility).parseCpuGpu(path);
-    print('$result');  // TODO NEXT
+    result.writeToJsonFile(outJson);
+    print('$result\nThe result has been written into $outJson');
   }
 }

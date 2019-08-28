@@ -5,3 +5,4 @@
 build/
 pubspec.lock
 *.trace
+result.json

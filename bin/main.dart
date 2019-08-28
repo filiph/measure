@@ -19,6 +19,12 @@ class IosCpuGpu extends Command {
 main(List<String> args) {
   final CommandRunner runner = CommandRunner('measure', 'Some measuring tools.');
   runner.argParser.addFlag(kFlagVerbose);
+  runner.argParser.addOption(
+    kOptionOutJson,
+    abbr: 'o',
+    help: 'json file for the measure result.',
+    defaultsTo: 'result.json',
+  );
 
   runner.addCommand(IosCpuGpu());
   runner.run(args);
